@@ -6,6 +6,7 @@
  */
 namespace Shannon\PayPal;
 
+
 class PayPal
 {
 
@@ -16,6 +17,12 @@ class PayPal
         $this->config = $config;
     }
 
+    /**
+     * @param $order
+     * @return \PayPal\Api\Payment|string
+     * @author 卢绍明<lusm@sz-bcs.com.cn>
+     * @date   2019/8/29
+     */
     public function createPayment($order)
     {
         $payment = new Payment();
@@ -23,6 +30,19 @@ class PayPal
             ->create($this->config);
 
         return $paypalPayment;
+    }
+
+    /**
+     * @param $paymentId
+     * @param $payerId
+     * @return mixed
+     * @author 卢绍明<lusm@sz-bcs.com.cn>
+     * @date   2019/8/29
+     */
+    public function receiptPayment($paymentId, $payerId)
+    {
+        $payment = new Payment();
+        return $payment->receiptPayment($paymentId, $payerId);
     }
 
 

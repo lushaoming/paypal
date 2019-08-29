@@ -11,6 +11,7 @@ use PayPal\Api\Details;
 use PayPal\Api\Item;
 use PayPal\Api\ItemList;
 use PayPal\Api\Payer;
+use PayPal\Api\PaymentExecution;
 use PayPal\Api\RedirectUrls;
 use PayPal\Api\Transaction;
 use PayPal\Exception\PayPalConnectionException;
@@ -200,7 +201,7 @@ class Payment
      * @param string $paymentAction default sale
      * @return \PayPal\Api\Payment
      */
-    public function getPayment(Payer $payer, Transaction $transaction, RedirectUrls $redirectUrl, $paymentAction = 'sale') : Payment
+    public function getPayment(Payer $payer, Transaction $transaction, RedirectUrls $redirectUrl, $paymentAction = 'sale') : \PayPal\Api\Payment
     {
         $payment = new \PayPal\Api\Payment();
         $payment->setIntent($paymentAction)
@@ -238,5 +239,18 @@ class Payment
         }
 
 
+    }
+
+    public function receiptPayment($paymentId, $payerId)
+    {
+        $paymentExecute = new PaymentExecution();
+        $paymentExecute->setPayerId($payerId);
+        $payment = new \PayPal\Api\Payment();
+        $payment->setId($paymentId)->execute($paymentExecute);
+
+        // 获取交易ID，可用于退款操作
+        $transaction = $payment->getTransactions();
+        $transactionId = $transaction[0]->related_resources[0]->sale->id;
+        return $transactionId;
     }
 }
