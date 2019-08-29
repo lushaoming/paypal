@@ -37,6 +37,8 @@ class Payment
     {
         if (isset($data['products'])) $this->setItems($data['products']);
 
+        if (isset($data['product_total'])) $this->setProductTotal($data['product_total']);
+
         if (isset($data['currency']))  $this->setCurrency($data['currency']);
 
         if (isset($data['tax'])) $this->setTax($data['tax']);
@@ -53,7 +55,11 @@ class Payment
 
         if (isset($data['billing'])) $this->setBilling($data['billing']);
 
+        if (isset($data['shipping'])) $this->setShipping($data['shipping']);
+
         if (isset($data['payer'])) $this->setPayer($data['payer']);
+
+        if (isset($data['redirect_url'])) $this->setRedirectUrl($data['redirect_url']);
     }
 
     public function setItems($products)
@@ -94,6 +100,12 @@ class Payment
             ->setPrice($discount) // setPrice()：单价
             ->setTax(0);
         $this->productTotal += $discount;
+        $this->items[] = $discountItem;
+    }
+
+    public function setProductTotal($total)
+    {
+        $this->productTotal = $total;
     }
 
     public function setOrderTotal($total)
@@ -170,11 +182,11 @@ class Payment
         $this->transaction = $transaction;
     }
 
-    public function setReturnUrl($redirect)
+    public function setRedirectUrl($redirect)
     {
         $redirectUrl = new RedirectUrls();
         $redirectUrl->setReturnUrl($redirect['success'])
-            ->setCancelUrl('cancel');
+            ->setCancelUrl($redirect['cancel']);
         $this->redirectUrl = $redirectUrl;
     }
 
