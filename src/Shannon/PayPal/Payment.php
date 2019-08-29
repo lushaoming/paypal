@@ -34,6 +34,7 @@ class Payment
     private $detail;
     private $transaction;
     private $redirectUrl;
+    private $applicationContext;
 
     public function init($data)
     {
@@ -53,8 +54,6 @@ class Payment
 
         if (isset($data['order_no'])) $this->setOrderNo($data['order_no']);
 
-        if (isset($data['shipping'])) $this->setShippingFee($data['shipping']);
-
         if (isset($data['billing'])) $this->setBilling($data['billing']);
 
         if (isset($data['shipping'])) $this->setShipping($data['shipping']);
@@ -63,6 +62,8 @@ class Payment
 
         if (isset($data['redirect_url'])) $this->setRedirectUrl($data['redirect_url']);
 
+        if (isset($data['application_context'])) $this->setApplicationContext($data['application_context']);
+
         return $this;
     }
 
@@ -70,13 +71,19 @@ class Payment
     {
         foreach ($products as $k => $product) {
             $this->items[$k] = new Item();
-            $this->items[$k]->setName($product['name'])
+            $this->items[$k]->setSku($product['sku'])
+                ->setName($product['name'])
                 ->setCurrency($this->currency)
                 ->setQuantity($product['qty'])
                 ->setPrice($product['price']) // setPrice()：单价
                 ->setTax($product['line_tax']);
             $this->productTotal += $product['line_total'];
         }
+    }
+
+    public function setApplicationContext($applicationContext)
+    {
+        $this->applicationContext = $applicationContext;
     }
 
     public function setCurrency($currency)
@@ -228,6 +235,9 @@ class Payment
 
             $payment = $this->getPayment($this->payer, $this->transaction, $this->redirectUrl);
 
+            if ($this->applicationContext) {
+                $payment->setApplicationContext($this->applicationContext);
+            }
             $payment->create($paypal);
             return $payment;
 
@@ -243,10 +253,11 @@ class Payment
 
     public function receiptPayment($paymentId, $payerId)
     {
+        $paypal = ApiContext::getInstance()->createContext();
         $paymentExecute = new PaymentExecution();
         $paymentExecute->setPayerId($payerId);
         $payment = new \PayPal\Api\Payment();
-        $payment->setId($paymentId)->execute($paymentExecute);
+        $payment->setId($paymentId)->execute($paymentExecute, $paypal);
 
         // 获取交易ID，可用于退款操作
         $transaction = $payment->getTransactions();
