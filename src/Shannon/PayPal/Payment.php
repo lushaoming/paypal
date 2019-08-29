@@ -14,7 +14,6 @@ use PayPal\Api\Payer;
 use PayPal\Api\PaymentExecution;
 use PayPal\Api\RedirectUrls;
 use PayPal\Api\Transaction;
-use PayPal\Exception\PayPalConnectionException;
 
 class Payment
 {
@@ -103,12 +102,22 @@ class Payment
 
     public function setDiscount($discount)
     {
-        $this->discount = $discount;
+        if (is_array($discount)) {
+            $value = $discount['total'];
+            $name = $discount['name'];
+        } elseif (is_numeric($discount)) {
+            $name = 'Discount';
+            $value = $discount;
+        } else {
+            throw new ShannonPaypalException('Param discount is invalid');
+        }
+
+        $this->discount = $value;
         $discountItem = new Item();
-        $discountItem->setName('Discount')
+        $discountItem->setName($name)
             ->setCurrency($this->currency)
             ->setQuantity(1)
-            ->setPrice($discount) // setPrice()：单价
+            ->setPrice($value) // setPrice()：单价
             ->setTax(0);
         $this->productTotal += $discount;
         $this->items[] = $discountItem;
@@ -220,35 +229,26 @@ class Payment
 
     public function create($config = [])
     {
-        try {
-            $paypal = ApiContext::getInstance()->createContext($config);
+        $paypal = ApiContext::getInstance()->createContext($config);
 
-            $this->setItemList($this->items, $this->shipping);
+        $this->setItemList($this->items, $this->shipping);
 
-            $this->setDetail($this->productTotal);
+        $this->setDetail($this->productTotal);
 
-            $this->setAmount($this->detail, $this->orderTotal);
+        $this->setAmount($this->detail, $this->orderTotal);
 
-            $orderNo = $this->getOrderNo();
+        $orderNo = $this->getOrderNo();
 
-            $this->setTransaction($this->amount, $this->itemList, $orderNo);
+        $this->setTransaction($this->amount, $this->itemList, $orderNo);
 
-            $payment = $this->getPayment($this->payer, $this->transaction, $this->redirectUrl);
+        $payment = $this->getPayment($this->payer, $this->transaction, $this->redirectUrl);
 
-            if ($this->applicationContext) {
-                $payment->setApplicationContext($this->applicationContext);
-            }
-            $payment->create($paypal);
-            return $payment;
-
-
-        } catch (ShannonPaypalException $e) {
-            return $e->getMessage();
-        } catch (PayPalConnectionException $e) {
-            return $e->getMessage();
+        if ($this->applicationContext) {
+            $payment->setApplicationContext($this->applicationContext);
         }
+        $payment->create($paypal);
 
-
+        return $payment;
     }
 
     public function receiptPayment($paymentId, $payerId)
