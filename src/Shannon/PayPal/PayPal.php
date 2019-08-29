@@ -18,7 +18,9 @@ class PayPal
 
     public function createPayment($order)
     {
-
+        $payment = new Payment();
+        $paypalPayment = $payment->init($order);
+        var_dump($paypalPayment);
     }
 
 
