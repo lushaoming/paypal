@@ -34,11 +34,11 @@ class ApiContext
         return self::$instance;
     }
 
-    public function createContext()
+    public function createContext($config = [])
     {
         return (new PayPalContext(new \PayPal\Auth\OAuthTokenCredential(
-            $this->clientId,
-            $this->clientSecret
+            isset($config['client_id']) ? $config['client_id'] : $this->clientId,
+            isset($config['client_secret']) ? $config['client_secret'] :$this->clientSecret
         )));
     }
 }

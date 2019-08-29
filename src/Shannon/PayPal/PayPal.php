@@ -19,14 +19,15 @@ class PayPal
     public function createPayment($order)
     {
         $payment = new Payment();
-        $paypalPayment = $payment->init($order);
-        var_dump($paypalPayment);
+        $paypalPayment = $payment->init($order)
+            ->create($this->config);
+
+        return $paypalPayment;
     }
 
 
-    public function test($name)
+    public function test()
     {
-//        echo "Hello, {$name}";
         $config = PayPalConfig::getInstance()->getConfigs();
         var_dump($config);
     }

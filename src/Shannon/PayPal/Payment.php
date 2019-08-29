@@ -13,6 +13,7 @@ use PayPal\Api\ItemList;
 use PayPal\Api\Payer;
 use PayPal\Api\RedirectUrls;
 use PayPal\Api\Transaction;
+use PayPal\Exception\PayPalConnectionException;
 
 class Payment
 {
@@ -60,6 +61,8 @@ class Payment
         if (isset($data['payer'])) $this->setPayer($data['payer']);
 
         if (isset($data['redirect_url'])) $this->setRedirectUrl($data['redirect_url']);
+
+        return $this;
     }
 
     public function setItems($products)
@@ -165,7 +168,7 @@ class Payment
 
     public function setAmount($detail, float $total)
     {
-        if (empty($total)) throw new ShannonPaypalException('order_no is invalid');
+        if (empty($total)) throw new ShannonPaypalException('order_total is invalid');
         $amount = new Amount();
         $amount->setCurrency($this->currency)
             ->setTotal($total);// setTotal(): 订单总价，包含所有费用
@@ -207,10 +210,10 @@ class Payment
         return $payment;
     }
 
-    public function create()
+    public function create($config = [])
     {
         try {
-            $paypal = ApiContext::getInstance()->createContext();
+            $paypal = ApiContext::getInstance()->createContext($config);
 
             $this->setItemList($this->items, $this->shipping);
 
@@ -229,6 +232,8 @@ class Payment
 
 
         } catch (ShannonPaypalException $e) {
+            return $e->getMessage();
+        } catch (PayPalConnectionException $e) {
             return $e->getMessage();
         }
 
