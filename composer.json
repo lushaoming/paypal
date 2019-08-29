@@ -1,0 +1,15 @@
+{
+    "name": "shannon/paypal",
+    "description": "paypal payment for php",
+    "type": "library",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Shannon\\PayPal\\": "src/Shannon/PayPal"
+        }
+    }
+}
