@@ -1,2 +1,2 @@
-Install
+Install: 
 composer require shannon/paypal
